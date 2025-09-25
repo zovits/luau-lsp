@@ -126,7 +126,7 @@ json SourceNode::toJson() const
         j["filePaths"] = filePaths;
     }
     if (!children.empty()) {
-    j["children"] = json::array();
+        j["children"] = json::array();
         for (const auto* child : children)
         {
             j["children"].push_back(child->toJson());
