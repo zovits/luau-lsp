@@ -90,12 +90,14 @@ struct SourceNode
     std::optional<const SourceNode*> findAncestor(const std::string& name) const;
 
     static SourceNode* fromJson(const json& j, Luau::TypedAllocator<SourceNode>& allocator);
+    json toJson() const;
 };
 
 struct PluginNode
 {
     std::string name = "";
     std::string className = "";
+    std::optional<std::string> filePath = std::nullopt;
     std::vector<PluginNode*> children{};
 
     static PluginNode* fromJson(const json& j, Luau::TypedAllocator<PluginNode>& allocator);

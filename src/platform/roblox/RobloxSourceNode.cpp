@@ -1,3 +1,4 @@
+#include "LSP/JsonRpc.hpp"
 #include "Platform/RobloxPlatform.hpp"
 #include <queue>
 
@@ -114,4 +115,18 @@ SourceNode* SourceNode::fromJson(const json& j, Luau::TypedAllocator<SourceNode>
     }
 
     return allocator.allocate(SourceNode(std::move(name), std::move(className), std::move(filePaths), std::move(children)));
+}
+
+json SourceNode::toJson() const
+{
+    json j;
+    j["name"] = name;
+    j["className"] = className;
+    j["filePaths"] = filePaths;
+    j["children"] = json::array();
+    for (const auto* child : children)
+    {
+        j["children"].push_back(child->toJson());
+    }
+    return j;
 }

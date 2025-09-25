@@ -11,6 +11,15 @@ LUAU_FASTFLAG(LuauSolverV2)
 
 static void mutateSourceNodeWithPluginInfo(SourceNode* sourceNode, const PluginNode* pluginInstance, Luau::TypedAllocator<SourceNode>& allocator)
 {
+    // If the plugin has a new filePath, add it to the sourceNode's filePaths
+    if (pluginInstance->filePath.has_value())
+    {
+        if (std::find(sourceNode->filePaths.begin(), sourceNode->filePaths.end(), pluginInstance->filePath.value()) == sourceNode->filePaths.end())
+        {
+            sourceNode->filePaths.push_back(pluginInstance->filePath.value());
+        }
+    }
+
     // We currently perform purely additive changes where we add in new children
     for (const auto& dmChild : pluginInstance->children)
     {
@@ -533,6 +542,7 @@ void RobloxPlatform::handleSourcemapUpdate(Luau::Frontend& frontend, const Luau:
         if (rootSourceNode->className == "DataModel")
         {
             mutateSourceNodeWithPluginInfo(rootSourceNode, pluginInfo, sourceNodeAllocator);
+            writePathsToMap(rootSourceNode, "game");
         }
         else
         {

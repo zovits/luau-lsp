@@ -8,6 +8,11 @@ PluginNode* PluginNode::fromJson(const json& j, Luau::TypedAllocator<PluginNode>
 {
     auto name = j.at("Name").get<std::string>();
     auto className = j.at("ClassName").get<std::string>();
+    std::optional<std::string> filePath = std::nullopt;
+    if (j.contains("FilePath"))
+    {
+        filePath = j.at("FilePath").get<std::string>();
+    }
 
     std::vector<PluginNode*> children;
     if (j.contains("Children"))
@@ -18,7 +23,7 @@ PluginNode* PluginNode::fromJson(const json& j, Luau::TypedAllocator<PluginNode>
         }
     }
 
-    return allocator.allocate(PluginNode{std::move(name), std::move(className), std::move(children)});
+    return allocator.allocate(PluginNode{std::move(name), std::move(className), std::move(filePath), std::move(children)});
 }
 
 void RobloxPlatform::onStudioPluginFullChange(const json& dataModel)
