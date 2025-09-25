@@ -97,7 +97,6 @@ std::optional<std::string> readFile(const std::string& name)
 bool writeFile(const std::string& name, const std::string& content)
 {
 #ifdef _WIN32
-    // Use a valid sharing flag; deny none to match typical fopen semantics
     FILE* file = _wfsopen(fromUtf8(name).c_str(), L"wb", _SH_DENYWR);
 #else
     FILE* file = fopen(name.c_str(), "wb");
