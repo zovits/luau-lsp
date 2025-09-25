@@ -1,6 +1,7 @@
 --!strict
 local HttpService = game:GetService("HttpService")
 local ScriptEditorService = game:GetService("ScriptEditorService")
+local LiveSyncService = require(script:FindFirstChild("LiveSyncService")) -- TODO: Use game:getService("LiveSyncService") when it's available
 assert(plugin, "This code must run inside of a plugin")
 
 if game:GetService("RunService"):IsRunning() then
@@ -118,6 +119,7 @@ local function encodeInstance(instance: Instance, childFilter: ((Instance) -> bo
 	local encoded = {}
 	encoded.Name = instance.Name
 	encoded.ClassName = instance.ClassName
+	encoded.FilePath = LiveSyncService:GetSyncInfo(instance).FilePath
 	encoded.Children = {}
 
 	for _, child in instance:GetChildren() do
@@ -240,6 +242,14 @@ local function watchChanges(isSilent)
 		game.DescendantAdded:Connect(function(instance)
 			if isTrackedInstance(instance) then
 				trackInstanceChanges(instance)
+				deferSend()
+			end
+		end)
+	)
+	table.insert(
+		connections,
+		LiveSyncService.SyncStatusChanged:Connect(function(instance)
+			if isTrackedInstance(instance) then
 				deferSend()
 			end
 		end)
