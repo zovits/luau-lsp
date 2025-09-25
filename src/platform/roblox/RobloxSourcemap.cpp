@@ -455,7 +455,6 @@ bool RobloxPlatform::updateSourceMap()
     // TODO: we assume the sourcemap file is in the workspace root
     auto sourcemapPath = workspaceFolder->rootUri.resolvePath(sourcemapFileName);
 
-    // Read in the sourcemap
     if (Luau::FileUtils::exists(sourcemapPath.fsPath()))
     {
         if (auto sourceMapContents = Luau::FileUtils::readFile(sourcemapPath.fsPath()))
