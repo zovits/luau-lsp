@@ -12,12 +12,10 @@ LUAU_FASTFLAG(LuauSolverV2)
 static void mutateSourceNodeWithPluginInfo(SourceNode* sourceNode, const PluginNode* pluginInstance, Luau::TypedAllocator<SourceNode>& allocator)
 {
     // If the plugin has a new filePath, add it to the sourceNode's filePaths
-    if (pluginInstance->filePath.has_value())
+    if (pluginInstance->filePath.has_value() &&
+        std::find(sourceNode->filePaths.begin(), sourceNode->filePaths.end(), pluginInstance->filePath.value()) == sourceNode->filePaths.end())
     {
-        if (std::find(sourceNode->filePaths.begin(), sourceNode->filePaths.end(), pluginInstance->filePath.value()) == sourceNode->filePaths.end())
-        {
-            sourceNode->filePaths.push_back(pluginInstance->filePath.value());
-        }
+        sourceNode->filePaths.push_back(pluginInstance->filePath.value());
     }
 
     // We currently perform purely additive changes where we add in new children
@@ -457,6 +455,7 @@ bool RobloxPlatform::updateSourceMap()
     // TODO: we assume the sourcemap file is in the workspace root
     auto sourcemapPath = workspaceFolder->rootUri.resolvePath(sourcemapFileName);
 
+    // Read in the sourcemap
     if (Luau::FileUtils::exists(sourcemapPath.fsPath()))
     {
         if (auto sourceMapContents = Luau::FileUtils::readFile(sourcemapPath.fsPath()))
@@ -470,6 +469,7 @@ bool RobloxPlatform::updateSourceMap()
             return false;
         }
     }
+    // No sourcemap file exists, but we can still use the information from the plugin
     else if (pluginInfo)
     {
         workspaceFolder->client->sendTrace("Creating sourcemap from plugin provided information");
