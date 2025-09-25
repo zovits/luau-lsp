@@ -122,11 +122,15 @@ json SourceNode::toJson() const
     json j;
     j["name"] = name;
     j["className"] = className;
-    j["filePaths"] = filePaths;
+    if (!filePaths.empty()) {
+        j["filePaths"] = filePaths;
+    }
+    if (!children.empty()) {
     j["children"] = json::array();
-    for (const auto* child : children)
-    {
-        j["children"].push_back(child->toJson());
+        for (const auto* child : children)
+        {
+            j["children"].push_back(child->toJson());
+        }
     }
     return j;
 }
