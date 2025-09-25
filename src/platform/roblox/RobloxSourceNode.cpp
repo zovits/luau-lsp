@@ -88,7 +88,11 @@ std::optional<const SourceNode*> SourceNode::findDescendant(const std::string& c
 
 bool SourceNode::containsFilePaths() const
 {
-    return !filePaths.empty() || std::any_of(children.begin(), children.end(), [](const auto* child) { return child->containsFilePaths(); });
+    return !filePaths.empty() || std::any_of(children.begin(), children.end(),
+                                     [](const auto* child)
+                                     {
+                                         return child->containsFilePaths();
+                                     });
 }
 
 std::optional<const SourceNode*> SourceNode::findAncestor(const std::string& ancestorName) const
@@ -128,19 +132,24 @@ ordered_json SourceNode::toJson(bool onlyIncludeNodesWithFilePaths) const
     node["name"] = name;
     node["className"] = className;
 
-    if (!filePaths.empty()) {
+    if (!filePaths.empty())
+    {
         node["filePaths"] = filePaths;
     }
 
-    if (!children.empty()) {
+    if (!children.empty())
+    {
         ordered_json children_array = ordered_json::array();
-        for (const auto* child : children) {
-            if (onlyIncludeNodesWithFilePaths && !child->containsFilePaths()) {
+        for (const auto* child : children)
+        {
+            if (onlyIncludeNodesWithFilePaths && !child->containsFilePaths())
+            {
                 continue;
             }
             children_array.emplace_back(child->toJson(onlyIncludeNodesWithFilePaths));
         }
-        if (!children_array.empty()) {
+        if (!children_array.empty())
+        {
             node["children"] = children_array;
         }
     }
