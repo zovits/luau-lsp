@@ -86,6 +86,11 @@ std::optional<const SourceNode*> SourceNode::findDescendant(const std::string& c
     return std::nullopt;
 }
 
+bool SourceNode::containsFilePaths() const
+{
+    return !filePaths.empty() || std::any_of(children.begin(), children.end(), [](const auto* child) { return child->containsFilePaths(); });
+}
+
 std::optional<const SourceNode*> SourceNode::findAncestor(const std::string& ancestorName) const
 {
     auto current = parent;
@@ -117,20 +122,28 @@ SourceNode* SourceNode::fromJson(const json& j, Luau::TypedAllocator<SourceNode>
     return allocator.allocate(SourceNode(std::move(name), std::move(className), std::move(filePaths), std::move(children)));
 }
 
-json SourceNode::toJson() const
+ordered_json SourceNode::toJson(bool onlyIncludeNodesWithFilePaths) const
 {
-    json j;
-    j["name"] = name;
-    j["className"] = className;
+    ordered_json node;
+    node["name"] = name;
+    node["className"] = className;
+
     if (!filePaths.empty()) {
-        j["filePaths"] = filePaths;
+        node["filePaths"] = filePaths;
     }
+
     if (!children.empty()) {
-        j["children"] = json::array();
-        for (const auto* child : children)
-        {
-            j["children"].push_back(child->toJson());
+        ordered_json children_array = ordered_json::array();
+        for (const auto* child : children) {
+            if (onlyIncludeNodesWithFilePaths && !child->containsFilePaths()) {
+                continue;
+            }
+            children_array.emplace_back(child->toJson(onlyIncludeNodesWithFilePaths));
+        }
+        if (!children_array.empty()) {
+            node["children"] = children_array;
         }
     }
-    return j;
+
+    return node;
 }

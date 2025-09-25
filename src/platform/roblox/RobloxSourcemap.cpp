@@ -476,7 +476,14 @@ bool RobloxPlatform::updateSourceMap()
         workspaceFolder->client->sendWindowMessage(
             lsp::MessageType::Info, "Couldn't find " + sourcemapFileName + " for workspace '" + workspaceFolder->name +
                                         "'. Using available datamodel info from companion plugin (require paths may be missing)");
-        return updateSourceMapFromContents("{\"name\":\"Default\",\"className\":\"DataModel\",\"children\":[]}");
+        bool updated = updateSourceMapFromContents("{\"name\":\"Default\",\"className\":\"DataModel\",\"children\":[]}");
+        if (config.sourcemap.autogenerate && updated && rootSourceNode && rootSourceNode->containsFilePaths())
+        {
+            // Autogenerate is enabled, so we should write this new sourcemap to the file
+            auto j = rootSourceNode->toJson(true);
+            Luau::FileUtils::writeFile(sourcemapPath.fsPath(), j.dump(2));
+        }
+        return updated;
     }
     else
     {

@@ -89,8 +89,10 @@ struct SourceNode
     // O(n) search for ancestor of name
     std::optional<const SourceNode*> findAncestor(const std::string& name) const;
 
+    bool containsFilePaths() const;
+    ordered_json toJson(bool onlyIncludeNodesWithFilePaths) const;
+
     static SourceNode* fromJson(const json& j, Luau::TypedAllocator<SourceNode>& allocator);
-    json toJson() const;
 };
 
 struct PluginNode
