@@ -549,6 +549,7 @@ void RobloxPlatform::handleSourcemapUpdate(Luau::Frontend& frontend, const Luau:
         if (rootSourceNode->className == "DataModel")
         {
             mutateSourceNodeWithPluginInfo(rootSourceNode, pluginInfo, sourceNodeAllocator);
+            // Make sure any new paths from the plugin are mapped for use
             writePathsToMap(rootSourceNode, "game");
         }
         else
