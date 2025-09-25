@@ -480,6 +480,7 @@ bool RobloxPlatform::updateSourceMap()
         if (config.sourcemap.autogenerate && updated && rootSourceNode && rootSourceNode->containsFilePaths())
         {
             // Autogenerate is enabled, so we should write this new sourcemap to the file
+            workspaceFolder->client->sendTrace("Writing new sourcemap to " + sourcemapPath.toString());
             auto j = rootSourceNode->toJson(true);
             Luau::FileUtils::writeFile(sourcemapPath.fsPath(), j.dump(2));
         }
