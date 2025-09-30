@@ -119,7 +119,7 @@ local function encodeInstance(instance: Instance, childFilter: ((Instance) -> bo
 	local encoded = {}
 	encoded.Name = instance.Name
 	encoded.ClassName = instance.ClassName
-	encoded.FilePath = LiveSyncService:GetSyncInfo(instance).FilePath
+	encoded.FilePath = LiveSyncService:GetFilePath(instance)
 	encoded.Children = {}
 
 	for _, child in instance:GetChildren() do

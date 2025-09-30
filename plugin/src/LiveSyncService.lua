@@ -23,6 +23,14 @@ local DEFAULT_SYNC_INFO: SyncInfo = table.freeze({
 local SyncStatusChanged = Instance.new("BindableEvent")
 local InternalMappings: { [Instance]: SyncInfo } = {}
 
+function LiveSyncService:GetLinkedInstances(): { Instance }
+	local instances = {}
+	for instance, _ in InternalMappings do
+		table.insert(instances, instance)
+	end
+	return instances
+end
+
 function LiveSyncService:GetSyncStatus(instance: Instance): SyncStatus
 	local syncInfo = InternalMappings[instance]
 	if not syncInfo then
@@ -31,12 +39,12 @@ function LiveSyncService:GetSyncStatus(instance: Instance): SyncStatus
 	return syncInfo.SyncStatus
 end
 
-function LiveSyncService:GetSyncedInstances(): { Instance }
-	local instances = {}
-	for instance, _ in InternalMappings do
-		table.insert(instances, instance)
+function LiveSyncService:GetFilePath(instance: Instance): string?
+	local syncInfo = InternalMappings[instance]
+	if not syncInfo then
+		return nil
 	end
-	return instances
+	return syncInfo.FilePath
 end
 
 function LiveSyncService:GetSyncInfo(instance: Instance): SyncInfo
