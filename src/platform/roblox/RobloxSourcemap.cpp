@@ -9,13 +9,16 @@
 
 LUAU_FASTFLAG(LuauSolverV2)
 
-static void mutateSourceNodeWithPluginInfo(SourceNode* sourceNode, const PluginNode* pluginInstance, Luau::TypedAllocator<SourceNode>& allocator)
+static bool mutateSourceNodeWithPluginInfo(SourceNode* sourceNode, const PluginNode* pluginInstance, Luau::TypedAllocator<SourceNode>& allocator)
 {
+    bool updatedFilePaths = false;
+
     // If the plugin has a new filePath, add it to the sourceNode's filePaths
     if (pluginInstance->filePath.has_value() &&
         std::find(sourceNode->filePaths.begin(), sourceNode->filePaths.end(), pluginInstance->filePath.value()) == sourceNode->filePaths.end())
     {
         sourceNode->filePaths.push_back(pluginInstance->filePath.value());
+        updatedFilePaths = true;
     }
 
     // We currently perform purely additive changes where we add in new children
@@ -23,16 +26,18 @@ static void mutateSourceNodeWithPluginInfo(SourceNode* sourceNode, const PluginN
     {
         if (auto existingChildNode = sourceNode->findChild(dmChild->name))
         {
-            mutateSourceNodeWithPluginInfo(*existingChildNode, dmChild, allocator);
+            updatedFilePaths |= mutateSourceNodeWithPluginInfo(*existingChildNode, dmChild, allocator);
         }
         else
         {
             auto childNode = allocator.allocate(SourceNode(dmChild->name, dmChild->className, {}, {}));
-            mutateSourceNodeWithPluginInfo(childNode, dmChild, allocator);
+            updatedFilePaths |= mutateSourceNodeWithPluginInfo(childNode, dmChild, allocator);
 
             sourceNode->children.push_back(childNode);
         }
     }
+
+    return updatedFilePaths;
 }
 
 static std::optional<Luau::TypeId> getTypeIdForClass(const Luau::ScopePtr& globalScope, std::optional<std::string> className)
@@ -475,15 +480,7 @@ bool RobloxPlatform::updateSourceMap()
         workspaceFolder->client->sendWindowMessage(
             lsp::MessageType::Info, "Couldn't find " + sourcemapFileName + " for workspace '" + workspaceFolder->name +
                                         "'. Using available datamodel info from companion plugin (require paths may be missing)");
-        bool updated = updateSourceMapFromContents("{\"name\":\"Default\",\"className\":\"DataModel\",\"children\":[]}");
-        if (config.sourcemap.autogenerate && updated && rootSourceNode && rootSourceNode->containsFilePaths())
-        {
-            // Autogenerate is enabled, so we should write this new sourcemap to the file
-            workspaceFolder->client->sendTrace("Writing new sourcemap to " + sourcemapPath.toString());
-            auto j = rootSourceNode->toJson(true);
-            Luau::FileUtils::writeFile(sourcemapPath.fsPath(), j.dump(2));
-        }
-        return updated;
+        return updateSourceMapFromContents("{\"name\":\"Default\",\"className\":\"DataModel\",\"children\":[]}");
     }
     else
     {
@@ -548,9 +545,33 @@ void RobloxPlatform::handleSourcemapUpdate(Luau::Frontend& frontend, const Luau:
     {
         if (rootSourceNode->className == "DataModel")
         {
-            mutateSourceNodeWithPluginInfo(rootSourceNode, pluginInfo, sourceNodeAllocator);
-            // Make sure any new paths from the plugin are mapped for use
-            writePathsToMap(rootSourceNode, "game");
+            bool updatedFilePaths = mutateSourceNodeWithPluginInfo(rootSourceNode, pluginInfo, sourceNodeAllocator);
+            if (updatedFilePaths)
+            {
+                // Make sure any new paths from the plugin are mapped for use
+                writePathsToMap(rootSourceNode, "game");
+
+                // Update the sourcemap file if needed
+                auto config = workspaceFolder->client->getConfiguration(workspaceFolder->rootUri);
+                if (config.sourcemap.autogenerate)
+                {
+                    auto sourcemapPath = workspaceFolder->rootUri.resolvePath(config.sourcemap.sourcemapFile);
+
+                    if (!Luau::FileUtils::exists(sourcemapPath.fsPath()))
+                    {
+                        workspaceFolder->client->sendWindowMessage(
+                            lsp::MessageType::Info, "Creating " + config.sourcemap.sourcemapFile + " with information from plugin");
+                    }
+                    else
+                    {
+                        workspaceFolder->client->sendWindowMessage(
+                            lsp::MessageType::Info, "Updating " + config.sourcemap.sourcemapFile + " with information from plugin");
+                    }
+
+                    auto j = rootSourceNode->toJson(true);
+                    Luau::FileUtils::writeFile(sourcemapPath.fsPath(), j.dump(2));
+                }
+            }
         }
         else
         {
