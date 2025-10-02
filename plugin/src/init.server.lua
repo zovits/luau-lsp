@@ -1,7 +1,7 @@
 --!strict
 local HttpService = game:GetService("HttpService")
+local LiveSyncService = game:GetService("LiveSyncService")
 local ScriptEditorService = game:GetService("ScriptEditorService")
-local LiveSyncService = require(script:FindFirstChild("LiveSyncService")) -- TODO: Use game:getService("LiveSyncService") when it's available
 assert(plugin, "This code must run inside of a plugin")
 
 if game:GetService("RunService"):IsRunning() then
