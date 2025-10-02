@@ -62,57 +62,57 @@ task.delay(5, function()
 	InternalMappings[game:GetService("ReplicatedStorage").Packages] = {
 		SyncStatus = "Syncing",
 		IsRoot = true,
-		FilePath = "C:/Users/zovits/Downloads/proj/src/shared/Packages/",
-		DirectoryPath = "C:/Users/zovits/Downloads/proj/src/shared/Packages/",
+		FilePath = "$HOME\\Downloads\\proj\\src\\shared\\Packages\\",
+		DirectoryPath = "$HOME\\Downloads\\proj\\src\\shared\\Packages\\",
 		LastUpdated = DateTime.now():ToIsoDate(),
 	}
 	InternalMappings[game:GetService("ReplicatedStorage").Packages.Foo] = {
 		SyncStatus = "Syncing",
 		IsRoot = false,
-		FilePath = "C:/Users/zovits/Downloads/proj/src/shared/Packages/Foo.luau",
-		DirectoryPath = "C:/Users/zovits/Downloads/proj/src/shared/Packages/",
+		FilePath = "$HOME\\Downloads\\proj\\src\\shared\\Packages\\Foo.luau",
+		DirectoryPath = "$HOME\\Downloads\\proj\\src\\shared\\Packages\\",
 		LastUpdated = DateTime.now():ToIsoDate(),
 	}
 	InternalMappings[game:GetService("ReplicatedStorage").Packages.Bar] = {
 		SyncStatus = "Syncing",
 		IsRoot = false,
-		FilePath = "C:/Users/zovits/Downloads/proj/src/shared/Packages/Bar.luau",
-		DirectoryPath = "C:/Users/zovits/Downloads/proj/src/shared/Packages/",
+		FilePath = "$HOME\\Downloads\\proj\\src\\shared\\Packages\\Bar.luau",
+		DirectoryPath = "$HOME\\Downloads\\proj\\src\\shared\\Packages\\",
 		LastUpdated = DateTime.now():ToIsoDate(),
 	}
 	InternalMappings[game:GetService("ReplicatedStorage").Packages.Baz] = {
 		SyncStatus = "Syncing",
 		IsRoot = false,
-		FilePath = "C:/Users/zovits/Downloads/proj/src/shared/Packages/Baz.luau",
-		DirectoryPath = "C:/Users/zovits/Downloads/proj/src/shared/Packages/",
+		FilePath = "$HOME\\Downloads\\proj\\src\\shared\\Packages\\Baz.luau",
+		DirectoryPath = "$HOME\\Downloads\\proj\\src\\shared\\Packages\\",
 		LastUpdated = DateTime.now():ToIsoDate(),
 	}
 	InternalMappings[game:GetService("ServerScriptService").Server] = {
 		SyncStatus = "Syncing",
 		IsRoot = true,
-		FilePath = "C:/Users/zovits/Downloads/proj/src/server/init.legacy.luau",
-		DirectoryPath = "C:/Users/zovits/Downloads/proj/src/",
+		FilePath = "$HOME\\Downloads\\proj\\src\\server\\init.legacy.luau",
+		DirectoryPath = "$HOME\\Downloads\\proj\\src\\",
 		LastUpdated = DateTime.now():ToIsoDate(),
 	}
 	InternalMappings[game:GetService("ServerScriptService").Server.util] = {
 		SyncStatus = "Syncing",
 		IsRoot = false,
-		FilePath = "C:/Users/zovits/Downloads/proj/src/server/util.luau",
-		DirectoryPath = "C:/Users/zovits/Downloads/proj/src/server/",
+		FilePath = "$HOME\\Downloads\\proj\\src\\server\\util.luau",
+		DirectoryPath = "$HOME\\Downloads\\proj\\src\\server\\",
 		LastUpdated = DateTime.now():ToIsoDate(),
 	}
 	InternalMappings[game:GetService("StarterPlayer").StarterPlayerScripts.Client] = {
 		SyncStatus = "Syncing",
 		IsRoot = true,
-		FilePath = "C:/Users/zovits/Downloads/proj/src/client/init.client.luau",
-		DirectoryPath = "C:/Users/zovits/Downloads/proj/src/",
+		FilePath = "$HOME\\Downloads\\proj\\src\\client\\init.client.luau",
+		DirectoryPath = "$HOME\\Downloads\\proj\\src\\",
 		LastUpdated = DateTime.now():ToIsoDate(),
 	}
 	InternalMappings[game:GetService("StarterPlayer").StarterPlayerScripts.Client.helper] = {
 		SyncStatus = "Syncing",
 		IsRoot = false,
-		FilePath = "C:/Users/zovits/Downloads/proj/src/client/helper.luau",
-		DirectoryPath = "C:/Users/zovits/Downloads/proj/src/client/",
+		FilePath = "$HOME\\Downloads\\proj\\src\\client\\helper.luau",
+		DirectoryPath = "$HOME\\Downloads\\proj\\src\\client\\",
 		LastUpdated = DateTime.now():ToIsoDate(),
 	}
 	for instance in InternalMappings do

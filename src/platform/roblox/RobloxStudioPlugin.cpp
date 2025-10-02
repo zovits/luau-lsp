@@ -1,5 +1,7 @@
+#include "LuauFileUtils.hpp"
 #include "Platform/RobloxPlatform.hpp"
 
+#include "LSP/Utils.hpp"
 #include "LSP/LanguageServer.hpp"
 #include "LSP/Workspace.hpp"
 
@@ -11,7 +13,7 @@ PluginNode* PluginNode::fromJson(const json& j, Luau::TypedAllocator<PluginNode>
     std::optional<std::string> filePath = std::nullopt;
     if (j.contains("FilePath"))
     {
-        filePath = j.at("FilePath").get<std::string>();
+        filePath = Luau::FileUtils::normalizePath(resolvePath(j.at("FilePath").get<std::string>()));
     }
 
     std::vector<PluginNode*> children;
