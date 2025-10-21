@@ -126,7 +126,8 @@ SourceNode* SourceNode::fromJson(const json& j, Luau::TypedAllocator<SourceNode>
     return allocator.allocate(SourceNode(std::move(name), std::move(className), std::move(filePaths), std::move(children)));
 }
 
-ordered_json SourceNode::toJson(bool onlyIncludeNodesWithFilePaths) const
+// Only includes nodes with filepaths to avoid writing every Instance in the DataModel to `sourcemap.json`
+ordered_json SourceNode::toJson() const
 {
     ordered_json node;
     node["name"] = name;
@@ -142,11 +143,11 @@ ordered_json SourceNode::toJson(bool onlyIncludeNodesWithFilePaths) const
         ordered_json children_array = ordered_json::array();
         for (const auto* child : children)
         {
-            if (onlyIncludeNodesWithFilePaths && !child->containsFilePaths())
+            if (!child->containsFilePaths())
             {
                 continue;
             }
-            children_array.emplace_back(child->toJson(onlyIncludeNodesWithFilePaths));
+            children_array.emplace_back(child->toJson());
         }
         if (!children_array.empty())
         {
