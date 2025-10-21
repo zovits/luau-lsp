@@ -99,7 +99,7 @@ struct PluginNode
 {
     std::string name = "";
     std::string className = "";
-    std::optional<std::string> filePath = std::nullopt;
+    std::vector<std::string> filePaths{};
     std::vector<PluginNode*> children{};
 
     static PluginNode* fromJson(const json& j, Luau::TypedAllocator<PluginNode>& allocator);

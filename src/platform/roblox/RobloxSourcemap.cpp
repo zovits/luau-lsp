@@ -13,12 +13,14 @@ static bool mutateSourceNodeWithPluginInfo(SourceNode* sourceNode, const PluginN
 {
     bool updatedFilePaths = false;
 
-    // If the plugin has a new filePath, add it to the sourceNode's filePaths
-    if (pluginInstance->filePath.has_value() &&
-        std::find(sourceNode->filePaths.begin(), sourceNode->filePaths.end(), pluginInstance->filePath.value()) == sourceNode->filePaths.end())
+    // If the plugin has new filePaths, add them to the sourceNode's filePaths
+    for (const auto& filePath : pluginInstance->filePaths)
     {
-        sourceNode->filePaths.push_back(pluginInstance->filePath.value());
-        updatedFilePaths = true;
+        if (std::find(sourceNode->filePaths.begin(), sourceNode->filePaths.end(), filePath) == sourceNode->filePaths.end())
+        {
+            sourceNode->filePaths.push_back(filePath);
+            updatedFilePaths = true;
+        }
     }
 
     // We currently perform purely additive changes where we add in new children
