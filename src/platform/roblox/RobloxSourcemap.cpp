@@ -559,16 +559,8 @@ void RobloxPlatform::handleSourcemapUpdate(Luau::Frontend& frontend, const Luau:
                 {
                     auto sourcemapPath = workspaceFolder->rootUri.resolvePath(config.sourcemap.sourcemapFile);
 
-                    if (!Luau::FileUtils::exists(sourcemapPath.fsPath()))
-                    {
-                        workspaceFolder->client->sendWindowMessage(
-                            lsp::MessageType::Info, "Creating " + config.sourcemap.sourcemapFile + " with information from plugin");
-                    }
-                    else
-                    {
-                        workspaceFolder->client->sendWindowMessage(
-                            lsp::MessageType::Info, "Updating " + config.sourcemap.sourcemapFile + " with information from plugin");
-                    }
+                    workspaceFolder->client->sendLogMessage(
+                        lsp::MessageType::Info, "Updating " + config.sourcemap.sourcemapFile + " with information from plugin");
 
                     auto j = rootSourceNode->toJson(true);
                     Luau::FileUtils::writeFile(sourcemapPath.fsPath(), j.dump(2));
