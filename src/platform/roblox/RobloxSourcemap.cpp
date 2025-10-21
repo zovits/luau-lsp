@@ -522,9 +522,38 @@ void RobloxPlatform::updateSourceNodeMap(const std::string& sourceMapContents)
         auto j = json::parse(sourceMapContents);
         rootSourceNode = SourceNode::fromJson(j, sourceNodeAllocator);
 
+        // Mutate with plugin info
+        bool pluginModifiedFilePaths = false;
+        if (pluginInfo)
+        {
+            if (rootSourceNode->className == "DataModel")
+            {
+                pluginModifiedFilePaths = mutateSourceNodeWithPluginInfo(rootSourceNode, pluginInfo, sourceNodeAllocator);
+            }
+            else
+            {
+                std::cerr << "Attempted to update plugin information for a non-DM instance" << '\n';
+            }
+        }
+
         // Write paths
         std::string base = rootSourceNode->className == "DataModel" ? "game" : "ProjectRoot";
         writePathsToMap(rootSourceNode, base);
+
+        // Update the sourcemap file if needed
+        if (pluginModifiedFilePaths)
+        {
+            auto config = workspaceFolder->client->getConfiguration(workspaceFolder->rootUri);
+            if (config.sourcemap.autogenerate)
+            {
+                auto sourcemapPath = workspaceFolder->rootUri.resolvePath(config.sourcemap.sourcemapFile);
+
+                workspaceFolder->client->sendLogMessage(
+                    lsp::MessageType::Info, "Updating " + config.sourcemap.sourcemapFile + " with information from plugin");
+
+                Luau::FileUtils::writeFile(sourcemapPath.fsPath(), rootSourceNode->toJson().dump(2));
+            }
+        }
     }
     catch (const std::exception& e)
     {
@@ -541,37 +570,6 @@ void RobloxPlatform::handleSourcemapUpdate(Luau::Frontend& frontend, const Luau:
     LUAU_TIMETRACE_SCOPE("RobloxPlatform::handleSourcemapUpdate", "LSP");
     if (!rootSourceNode)
         return;
-
-    // Mutate with plugin info
-    if (pluginInfo)
-    {
-        if (rootSourceNode->className == "DataModel")
-        {
-            bool updatedFilePaths = mutateSourceNodeWithPluginInfo(rootSourceNode, pluginInfo, sourceNodeAllocator);
-            if (updatedFilePaths)
-            {
-                // Make sure any new paths from the plugin are mapped for use
-                writePathsToMap(rootSourceNode, "game");
-
-                // Update the sourcemap file if needed
-                auto config = workspaceFolder->client->getConfiguration(workspaceFolder->rootUri);
-                if (config.sourcemap.autogenerate)
-                {
-                    auto sourcemapPath = workspaceFolder->rootUri.resolvePath(config.sourcemap.sourcemapFile);
-
-                    workspaceFolder->client->sendLogMessage(
-                        lsp::MessageType::Info, "Updating " + config.sourcemap.sourcemapFile + " with information from plugin");
-
-                    auto j = rootSourceNode->toJson();
-                    Luau::FileUtils::writeFile(sourcemapPath.fsPath(), j.dump(2));
-                }
-            }
-        }
-        else
-        {
-            std::cerr << "Attempted to update plugin information for a non-DM instance" << '\n';
-        }
-    }
 
     // Create a type for the root source node
     getSourcemapType(globals, instanceTypes, rootSourceNode);
