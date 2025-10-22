@@ -13,13 +13,17 @@ static bool mutateSourceNodeWithPluginInfo(SourceNode* sourceNode, const PluginN
 {
     bool updatedFilePaths = false;
 
-    // If the plugin has new filePaths, add them to the sourceNode's filePaths
-    for (const auto& filePath : pluginInstance->filePaths)
+    // Update the filePaths with the plugin's file paths
+    if (sourceNode->pluginManagedFilePaths || !pluginInstance->filePaths.empty())
     {
-        if (std::find(sourceNode->filePaths.begin(), sourceNode->filePaths.end(), filePath) == sourceNode->filePaths.end())
+        // Mark as managed by the plugin so that the plugin may later write empty filePaths
+        sourceNode->pluginManagedFilePaths = true;
+
+        // Only update if changes are detected, avoiding infinite change triggers from sourcemap writes
+        if (sourceNode->filePaths != pluginInstance->filePaths)
         {
-            sourceNode->filePaths.push_back(filePath);
             updatedFilePaths = true;
+            sourceNode->filePaths = pluginInstance->filePaths;
         }
     }
 

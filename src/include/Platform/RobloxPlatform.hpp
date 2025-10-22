@@ -90,6 +90,7 @@ struct SourceNode
     std::optional<const SourceNode*> findAncestor(const std::string& name) const;
 
     bool containsFilePaths() const;
+    bool pluginManagedFilePaths = false; // Set manually when plugin modifies filePaths
     ordered_json toJson() const;
 
     static SourceNode* fromJson(const json& j, Luau::TypedAllocator<SourceNode>& allocator);
