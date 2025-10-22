@@ -17,7 +17,8 @@ static bool mutateSourceNodeWithPluginInfo(SourceNode* sourceNode, const PluginN
     if (sourceNode->pluginManagedFilePaths || !pluginInstance->filePaths.empty())
     {
         // Mark as managed by the plugin so that the plugin may later write empty filePaths
-        sourceNode->pluginManagedFilePaths = true;
+        // If writing an empty array, it means the node is not being synced anymore and the plugin releases control
+        sourceNode->pluginManagedFilePaths = !pluginInstance->filePaths.empty();
 
         // Only update if changes are detected, avoiding infinite change triggers from sourcemap writes
         if (sourceNode->filePaths != pluginInstance->filePaths)
