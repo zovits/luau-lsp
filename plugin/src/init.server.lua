@@ -115,11 +115,15 @@ local function filterServices(child: Instance): boolean
 	return not not table.find(Settings.include, child)
 end
 
-local function encodeInstance(instance: Instance, childFilter: ((Instance) -> boolean)?): EncodedInstance
+local function encodeInstance(
+	instance: Instance,
+	instancePaths: { [Instance]: string },
+	childFilter: ((Instance) -> boolean)?
+): EncodedInstance
 	local encoded = {}
 	encoded.Name = instance.Name
 	encoded.ClassName = instance.ClassName
-	encoded.FilePaths = { LiveSyncService:GetFilePath(instance) }
+	encoded.FilePaths = instancePaths[instance] or {}
 	encoded.Children = {}
 
 	for _, child in instance:GetChildren() do
@@ -127,7 +131,7 @@ local function encodeInstance(instance: Instance, childFilter: ((Instance) -> bo
 			continue
 		end
 
-		table.insert(encoded.Children, encodeInstance(child))
+		table.insert(encoded.Children, encodeInstance(child, instancePaths))
 	end
 
 	return encoded
@@ -150,9 +154,43 @@ local function cleanup()
 	connected.Value = false
 end
 
+local function getInstancePaths(): { [Instance]: { string } }
+	local success, result = pcall(HttpService.RequestAsync, HttpService, {
+		Method = "GET" :: "GET",
+		Url = string.format("http://localhost:%d/get-file-paths", Settings.port),
+		Headers = {
+			["Content-Type"] = "application/json",
+		},
+	})
+
+	local instancePaths: { [Instance]: { string } } = {}
+
+	if (not success) or not result.Success then
+		warn(`[Luau Language Server] Retrieving file paths failed: {if success then result.Body else result}`)
+		return instancePaths
+	end
+
+	local resultJson = HttpService:JSONDecode(result.Body)
+	if not resultJson.files then
+		warn(`[Luau Language Server] Retrieving file paths failed: invalid response: {result.Body}`)
+		return instancePaths
+	end
+
+	for _, filePath in resultJson.files do
+		local instance = LiveSyncService:GetInstanceFromFilePath(filePath) :: Instance?
+		if instance then
+			instancePaths[instance] = instancePaths[instance] or {}
+			table.insert(instancePaths[instance], filePath)
+		end
+	end
+
+	return instancePaths
+end
+
 local function sendFullDMInfo(isSilent)
 	assert(Settings ~= nil, "attempted to sendFullDMInfo when settings are invalid")
-	local tree = encodeInstance(game, filterServices)
+
+	local tree = encodeInstance(game, getInstancePaths(), filterServices)
 
 	local success, result = pcall(HttpService.RequestAsync, HttpService, {
 		Method = "POST" :: "POST",

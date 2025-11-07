@@ -187,6 +187,7 @@ public:
     void onStudioPluginFullChange(const json& dataModel);
     void onStudioPluginClear();
     bool handleNotification(const std::string& method, std::optional<json> params) override;
+    std::optional<json> handleRequest(const std::string& method, std::optional<json> params) override;
 
 
     using LSPPlatform::LSPPlatform;
