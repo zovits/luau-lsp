@@ -177,7 +177,7 @@ local function getInstancePaths(): { [Instance]: { string } }
 	end
 
 	for _, filePath in resultJson.files do
-		local instance = LiveSyncService:GetInstanceFromFilePath(filePath) :: Instance?
+		local instance = LiveSyncService:GetSyncedInstance(filePath) :: Instance?
 		if instance then
 			instancePaths[instance] = instancePaths[instance] or {}
 			table.insert(instancePaths[instance], filePath)
