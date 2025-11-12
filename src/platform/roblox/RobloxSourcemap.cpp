@@ -480,7 +480,6 @@ bool RobloxPlatform::updateSourceMap()
             return false;
         }
     }
-    // No sourcemap file exists, but we can still use the information from the plugin
     else if (pluginInfo)
     {
         workspaceFolder->client->sendTrace("Creating sourcemap from plugin provided information");

@@ -6,6 +6,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.56.1] - 2025-11-04
+
+### Fixed
+
+- Reverted "Fixed auto-imports not showing up when autocompleting in array-like tables" due to it incorrectly suggesting auto-imports when indexing tables (e.g., `local x = tbl.pro|`)
+
+## [1.56.0] - 2025-11-02
+
+### Added
+
+- The server now accepts DataModel information from the Studio Plugin even when there is no sourcemap present ([#1216](https://github.com/JohnnyMorganz/luau-lsp/pull/1216))
+- Added `luau-lsp.completion.imports.includedServices` and `luau-lsp.completion.imports.excludedServices` to configure what services show up during auto-importing. If non-empty, only the services listed in `includedServices` will show up. None of the services listed in `excludedServices` will ever show up.
+- Added support for inline documentation comments in global type definition files (relies on name being provided in settings, see below) ([#271](https://github.com/JohnnyMorganz/luau-lsp/issues/271))
+- Support processing `.config.luau` file as per [Luau-syntax configuration files RFC](https://rfcs.luau.org/config-luauconfig.html)
+
+### Changed
+
+- Sync to upstream Luau 0.698
+- Auto-imports are now enabled by default. Configure `luau-lsp.completion.imports.enabled` if you wish to disable it ([#619](https://github.com/JohnnyMorganz/luau-lsp/issues/619))
+- Definitions files must now provide a name for the file in settings and command line: i.e.
+  `--definitions:@roblox=path/to/globalTypes.d.luau`. This is to support mapping global types back to their original
+  definitions file for documentation features. Please update your LSP settings (`luau-lsp.types.definitionFiles`) and command line arguments.
+  Backwards compatibility has been temporarily preserved, with random names generated.
+- Table properties are now prioritised above other autocomplete entries (again, fixing a dormant bug)
+- Contextual keywords (`else` / `elseif` / `end`) are prioritised over other autocomplete entries when inside of the relevant statement
+
+### Fixed
+
+- Fixed auto-indentation in VSCode when entering a block if there is a comment after the introduction token (e.g., `if true then -- comment`) ([#1222](https://github.com/JohnnyMorganz/luau-lsp/issues/1222))
+- Fixed auto-imports not showing up when autocompleting in array-like tables (i.e., before the `=` sign has been written for a property) ([#1062](https://github.com/JohnnyMorganz/luau-lsp/issues/1062))
+
 ## [1.55.0] - 2025-10-19
 
 ### Added
