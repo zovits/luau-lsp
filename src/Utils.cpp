@@ -111,21 +111,13 @@ std::optional<std::string> getHomeDirectory()
     }
 }
 
-// Resolves a filesystem path, including any tilde or $HOME expansion
+// Resolves a filesystem path, including any tilde expansion
 std::string resolvePath(const std::string& path)
 {
     if (Luau::startsWith(path, "~/") || Luau::startsWith(path, "~\\"))
     {
         if (auto home = getHomeDirectory())
             return Luau::FileUtils::joinPaths(*home, path.substr(2));
-        else
-            // TODO: should we error / return an optional here instead?
-            return path;
-    }
-    else if (Luau::startsWith(path, "$HOME/") || Luau::startsWith(path, "$HOME\\"))
-    {
-        if (auto home = getHomeDirectory())
-            return Luau::FileUtils::joinPaths(*home, path.substr(6));
         else
             // TODO: should we error / return an optional here instead?
             return path;
