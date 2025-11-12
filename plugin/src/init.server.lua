@@ -1,6 +1,6 @@
 --!strict
+local ExternalSyncService = game:GetService("ExternalSyncService")
 local HttpService = game:GetService("HttpService")
-local LiveSyncService = game:GetService("LiveSyncService")
 local ScriptEditorService = game:GetService("ScriptEditorService")
 assert(plugin, "This code must run inside of a plugin")
 
@@ -177,10 +177,13 @@ local function getInstancePaths(): { [Instance]: { string } }
 	end
 
 	for _, filePath in resultJson.files do
-		local instance = LiveSyncService:GetSyncedInstance(filePath) :: Instance?
+		local instance = ExternalSyncService:GetSyncedInstance(filePath)
 		if instance then
-			instancePaths[instance] = instancePaths[instance] or {}
-			table.insert(instancePaths[instance], filePath)
+			if instancePaths[instance] then
+				table.insert(instancePaths[instance], filePath)
+			else
+				instancePaths[instance] = { filePath }
+			end
 		end
 	end
 
@@ -286,7 +289,7 @@ local function watchChanges(isSilent)
 	)
 	table.insert(
 		connections,
-		LiveSyncService.SyncStatusChanged:Connect(function(instance)
+		ExternalSyncService.StatusChanged:Connect(function(instance)
 			if isTrackedInstance(instance) then
 				deferSend()
 			end
