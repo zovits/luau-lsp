@@ -88,7 +88,7 @@ std::optional<json> RobloxPlatform::handleRequest(const std::string& method, std
                 auto ext = uri.extension();
                 if (ext == ".lua" || ext == ".luau")
                 {
-                    allFiles.push_back(path);
+                    allFiles.push_back(Luau::FileUtils::normalizePath(resolvePath(path)));
                 }
             });
 
