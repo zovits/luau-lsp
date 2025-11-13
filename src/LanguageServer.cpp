@@ -10,6 +10,7 @@
 #include "LSP/Uri.hpp"
 #include "LSP/DocumentationParser.hpp"
 #include "LSP/Diagnostics.hpp"
+#include "Platform/RobloxPlatform.hpp"
 
 #ifdef LSP_BUILD_WITH_SENTRY
 // sentry.h pulls in <windows.h>
@@ -355,7 +356,23 @@ void LanguageServer::onRequest(const id_type& id, const std::string& method, std
     }
     else
     {
-        throw JsonRpcException(lsp::ErrorCode::MethodNotFound, "method not found / supported: " + method);
+        // Try platform-specific request handlers
+        bool handled = false;
+        for (auto& workspace : workspaceFolders)
+        {
+            if (workspace->platform)
+            {
+                if (auto result = workspace->platform->handleRequest(method, baseParams))
+                {
+                    response = *result;
+                    handled = true;
+                    break;
+                }
+            }
+        }
+
+        if (!handled)
+            throw JsonRpcException(lsp::ErrorCode::MethodNotFound, "method not found / supported: " + method);
     }
 
     client->sendResponse(id, response);

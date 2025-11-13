@@ -89,6 +89,10 @@ struct SourceNode
     // O(n) search for ancestor of name
     std::optional<const SourceNode*> findAncestor(const std::string& name) const;
 
+    bool containsFilePaths() const;
+    bool pluginManagedFilePaths = false; // Set manually when plugin modifies filePaths
+    ordered_json toJson() const;
+
     static SourceNode* fromJson(const json& j, Luau::TypedAllocator<SourceNode>& allocator);
 };
 
@@ -96,6 +100,7 @@ struct PluginNode
 {
     std::string name = "";
     std::string className = "";
+    std::vector<std::string> filePaths{};
     std::vector<PluginNode*> children{};
 
     static PluginNode* fromJson(const json& j, Luau::TypedAllocator<PluginNode>& allocator);
@@ -182,6 +187,7 @@ public:
     void onStudioPluginFullChange(const json& dataModel);
     void onStudioPluginClear();
     bool handleNotification(const std::string& method, std::optional<json> params) override;
+    std::optional<json> handleRequest(const std::string& method, std::optional<json> params) override;
 
 
     using LSPPlatform::LSPPlatform;
