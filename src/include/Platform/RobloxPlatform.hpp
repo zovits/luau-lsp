@@ -74,6 +74,7 @@ struct SourceNode
     std::vector<std::string> filePaths{};
     std::vector<SourceNode*> children{};
     std::string virtualPath; // NB: NOT POPULATED BY SOURCEMAP, must be written to manually
+    bool pluginManaged = false;
 
     // The corresponding TypeId for this sourcemap node
     // A different TypeId is created for each type checker (frontend.typeChecker and frontend.typeCheckerForAutocomplete)
@@ -90,7 +91,6 @@ struct SourceNode
     std::optional<const SourceNode*> findAncestor(const std::string& name) const;
 
     bool containsFilePaths() const;
-    bool pluginManagedFilePaths = false; // Set manually when plugin modifies filePaths
     ordered_json toJson() const;
 
     static SourceNode* fromJson(const json& j, Luau::TypedAllocator<SourceNode>& allocator);

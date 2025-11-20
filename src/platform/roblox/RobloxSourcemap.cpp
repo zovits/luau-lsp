@@ -13,34 +13,48 @@ static bool mutateSourceNodeWithPluginInfo(SourceNode* sourceNode, const PluginN
 {
     bool updatedFilePaths = false;
 
-    // Update the filePaths with the plugin's file paths
-    if (sourceNode->pluginManagedFilePaths || !pluginInstance->filePaths.empty())
+    bool shouldUpdateFilePaths = sourceNode->pluginManaged || !pluginInstance->filePaths.empty();
+    if (shouldUpdateFilePaths && sourceNode->filePaths != pluginInstance->filePaths)
     {
-        // Mark as managed by the plugin so that the plugin may later write empty filePaths
-        // If writing an empty array, it means the node is not being synced anymore and the plugin releases control
-        sourceNode->pluginManagedFilePaths = !pluginInstance->filePaths.empty();
-
-        // Only update if changes are detected, avoiding infinite change triggers from sourcemap writes
-        if (sourceNode->filePaths != pluginInstance->filePaths)
-        {
-            updatedFilePaths = true;
-            sourceNode->filePaths = pluginInstance->filePaths;
-        }
+        updatedFilePaths = true;
+        sourceNode->filePaths = pluginInstance->filePaths;
     }
 
-    // We currently perform purely additive changes where we add in new children
+    // Update children from plugin info
+    std::unordered_set<std::string> pluginChildNames;
     for (const auto& dmChild : pluginInstance->children)
     {
+        pluginChildNames.insert(dmChild->name);
+
         if (auto existingChildNode = sourceNode->findChild(dmChild->name))
         {
+            // Hydrate the existing child with the plugin info
             updatedFilePaths |= mutateSourceNodeWithPluginInfo(*existingChildNode, dmChild, allocator);
         }
         else
         {
+            // Create a new child for this plugin node
             auto childNode = allocator.allocate(SourceNode(dmChild->name, dmChild->className, {}, {}));
+            childNode->pluginManaged = true;
             updatedFilePaths |= mutateSourceNodeWithPluginInfo(childNode, dmChild, allocator);
 
             sourceNode->children.push_back(childNode);
+        }
+    }
+
+    // Prune plugin-managed children that no longer exist in the plugin info
+    for (auto it = sourceNode->children.begin(); it != sourceNode->children.end();)
+    {
+        auto* child = *it;
+
+        if (child->pluginManaged && pluginChildNames.find(child->name) == pluginChildNames.end())
+        {
+            it = sourceNode->children.erase(it);
+            updatedFilePaths = true;
+        }
+        else
+        {
+            ++it;
         }
     }
 

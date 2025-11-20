@@ -123,7 +123,13 @@ SourceNode* SourceNode::fromJson(const json& j, Luau::TypedAllocator<SourceNode>
             children.emplace_back(SourceNode::fromJson(child, allocator));
     }
 
-    return allocator.allocate(SourceNode(std::move(name), std::move(className), std::move(filePaths), std::move(children)));
+    bool pluginManaged = false;
+    if (j.contains("pluginManaged"))
+        pluginManaged = j.at("pluginManaged").get<bool>();
+
+    auto node = allocator.allocate(SourceNode(std::move(name), std::move(className), std::move(filePaths), std::move(children)));
+    node->pluginManaged = pluginManaged;
+    return node;
 }
 
 // Only includes nodes with filepaths to avoid writing every Instance in the DataModel to `sourcemap.json`
@@ -132,6 +138,14 @@ ordered_json SourceNode::toJson() const
     ordered_json node;
     node["name"] = name;
     node["className"] = className;
+    if (pluginManaged)
+    {
+        // When a plugin-managed node is no longer in the plugin info, it must be pruned.
+        // However, when the sourcemap is being updated it starts by reading the sourcemap file.
+        // That would make all nodes NOT plugin-managed, so nothing could ever be removed.
+        // Therefore, we need to persist pluginManaged in the json.
+        node["pluginManaged"] = pluginManaged;
+    }
 
     if (!filePaths.empty())
     {
