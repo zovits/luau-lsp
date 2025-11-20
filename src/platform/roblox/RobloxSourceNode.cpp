@@ -141,8 +141,8 @@ ordered_json SourceNode::toJson() const
     if (pluginManaged)
     {
         // When a plugin-managed node is no longer in the plugin info, it must be pruned.
-        // However, when the sourcemap is being updated it starts by reading the sourcemap file.
-        // That would make all nodes NOT plugin-managed, so nothing could ever be removed.
+        // However, when the sourcemap is re-read (ex: file change, reopened editor, LSP restart)
+        // that would make all nodes NOT plugin-managed, so nothing could ever be removed after that.
         // Therefore, we need to persist pluginManaged in the json.
         node["pluginManaged"] = pluginManaged;
     }
