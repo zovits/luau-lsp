@@ -14,7 +14,7 @@
   "bugs": {
     "url": "https://github.com/JohnnyMorganz/luau-lsp/issues"
   },
-  "version": "1.56.1",
+  "version": "1.56.2",
   "engines": {
     "vscode": "^1.67.0"
   },
@@ -330,7 +330,7 @@
         "luau-lsp.types.definitionFiles": {
           "markdownDescription": "A mapping of package names to paths of definition files to load in to the type checker. Note that definition file syntax is currently unstable and may change at any time",
           "type": "object",
-          "default": [],
+          "default": {},
           "additionalProperties": {
             "type": "string"
           },
