@@ -9,25 +9,6 @@
 
 LUAU_FASTFLAG(LuauSolverV2)
 
-static void mutateSourceNodeWithPluginInfo(SourceNode* sourceNode, const PluginNode* pluginInstance, Luau::TypedAllocator<SourceNode>& allocator)
-{
-    // We currently perform purely additive changes where we add in new children
-    for (const auto& dmChild : pluginInstance->children)
-    {
-        if (auto existingChildNode = sourceNode->findChild(dmChild->name))
-        {
-            mutateSourceNodeWithPluginInfo(*existingChildNode, dmChild, allocator);
-        }
-        else
-        {
-            auto childNode = allocator.allocate(SourceNode(dmChild->name, dmChild->className, {}, {}));
-            mutateSourceNodeWithPluginInfo(childNode, dmChild, allocator);
-
-            sourceNode->children.push_back(childNode);
-        }
-    }
-}
-
 static std::optional<Luau::TypeId> getTypeIdForClass(const Luau::ScopePtr& globalScope, std::optional<std::string> className)
 {
     std::optional<Luau::TypeFun> baseType;
@@ -507,6 +488,9 @@ void RobloxPlatform::updateSourceNodeMap(const std::string& sourceMapContents)
         auto j = json::parse(sourceMapContents);
         rootSourceNode = SourceNode::fromJson(j, sourceNodeAllocator);
 
+        // Mutate with plugin info
+        hydrateSourcemapWithPluginInfo();
+
         // Write paths
         std::string base = rootSourceNode->className == "DataModel" ? "game" : "ProjectRoot";
         writePathsToMap(rootSourceNode, base);
@@ -526,19 +510,6 @@ void RobloxPlatform::handleSourcemapUpdate(Luau::Frontend& frontend, const Luau:
     LUAU_TIMETRACE_SCOPE("RobloxPlatform::handleSourcemapUpdate", "LSP");
     if (!rootSourceNode)
         return;
-
-    // Mutate with plugin info
-    if (pluginInfo)
-    {
-        if (rootSourceNode->className == "DataModel")
-        {
-            mutateSourceNodeWithPluginInfo(rootSourceNode, pluginInfo, sourceNodeAllocator);
-        }
-        else
-        {
-            std::cerr << "Attempted to update plugin information for a non-DM instance" << '\n';
-        }
-    }
 
     // Create a type for the root source node
     getSourcemapType(globals, instanceTypes, rootSourceNode);
