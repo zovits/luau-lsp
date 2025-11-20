@@ -9,58 +9,6 @@
 
 LUAU_FASTFLAG(LuauSolverV2)
 
-static bool mutateSourceNodeWithPluginInfo(SourceNode* sourceNode, const PluginNode* pluginInstance, Luau::TypedAllocator<SourceNode>& allocator)
-{
-    bool updatedFilePaths = false;
-
-    bool shouldUpdateFilePaths = sourceNode->pluginManaged || !pluginInstance->filePaths.empty();
-    if (shouldUpdateFilePaths && sourceNode->filePaths != pluginInstance->filePaths)
-    {
-        updatedFilePaths = true;
-        sourceNode->filePaths = pluginInstance->filePaths;
-    }
-
-    // Update children from plugin info
-    std::unordered_set<std::string> pluginChildNames;
-    for (const auto& dmChild : pluginInstance->children)
-    {
-        pluginChildNames.insert(dmChild->name);
-
-        if (auto existingChildNode = sourceNode->findChild(dmChild->name))
-        {
-            // Hydrate the existing child with the plugin info
-            updatedFilePaths |= mutateSourceNodeWithPluginInfo(*existingChildNode, dmChild, allocator);
-        }
-        else
-        {
-            // Create a new child for this plugin node
-            auto childNode = allocator.allocate(SourceNode(dmChild->name, dmChild->className, {}, {}));
-            childNode->pluginManaged = true;
-            updatedFilePaths |= mutateSourceNodeWithPluginInfo(childNode, dmChild, allocator);
-
-            sourceNode->children.push_back(childNode);
-        }
-    }
-
-    // Prune plugin-managed children that no longer exist in the plugin info
-    for (auto it = sourceNode->children.begin(); it != sourceNode->children.end();)
-    {
-        auto* child = *it;
-
-        if (child->pluginManaged && pluginChildNames.find(child->name) == pluginChildNames.end())
-        {
-            it = sourceNode->children.erase(it);
-            updatedFilePaths = true;
-        }
-        else
-        {
-            ++it;
-        }
-    }
-
-    return updatedFilePaths;
-}
-
 static std::optional<Luau::TypeId> getTypeIdForClass(const Luau::ScopePtr& globalScope, std::optional<std::string> className)
 {
     std::optional<Luau::TypeFun> baseType;
@@ -541,37 +489,7 @@ void RobloxPlatform::updateSourceNodeMap(const std::string& sourceMapContents)
         rootSourceNode = SourceNode::fromJson(j, sourceNodeAllocator);
 
         // Mutate with plugin info
-        bool pluginModifiedFilePaths = false;
-        if (pluginInfo)
-        {
-            if (rootSourceNode->className == "DataModel")
-            {
-                pluginModifiedFilePaths = mutateSourceNodeWithPluginInfo(rootSourceNode, pluginInfo, sourceNodeAllocator);
-            }
-            else
-            {
-                std::cerr << "Attempted to update plugin information for a non-DM instance" << '\n';
-            }
-        }
-
-        // Write paths
-        std::string base = rootSourceNode->className == "DataModel" ? "game" : "ProjectRoot";
-        writePathsToMap(rootSourceNode, base);
-
-        // Update the sourcemap file if needed
-        if (pluginModifiedFilePaths)
-        {
-            auto config = workspaceFolder->client->getConfiguration(workspaceFolder->rootUri);
-            if (config.sourcemap.autogenerate)
-            {
-                auto sourcemapPath = workspaceFolder->rootUri.resolvePath(config.sourcemap.sourcemapFile);
-
-                workspaceFolder->client->sendLogMessage(
-                    lsp::MessageType::Info, "Updating " + config.sourcemap.sourcemapFile + " with information from plugin");
-
-                Luau::FileUtils::writeFile(sourcemapPath.fsPath(), rootSourceNode->toJson().dump(2));
-            }
-        }
+        hydrateSourcemapWithPluginInfo(rootSourceNode);
     }
     catch (const std::exception& e)
     {

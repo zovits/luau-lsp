@@ -141,6 +141,10 @@ public:
 
     std::optional<Uri> getRealPathFromSourceNode(const SourceNode* sourceNode) const;
 
+    void clearPluginManagedNodesFromSourcemap(SourceNode* sourceNode);
+
+    bool hydrateSourcemapWithPluginInfo(SourceNode* sourceNode);
+
     void mutateRegisteredDefinitions(Luau::GlobalTypes& globals, std::optional<nlohmann::json> metadata) override;
 
     void onDidChangeWatchedFiles(const lsp::FileEvent& change) override;
