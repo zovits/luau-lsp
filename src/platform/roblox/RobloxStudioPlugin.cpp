@@ -118,8 +118,6 @@ bool RobloxPlatform::hydrateSourcemapWithPluginInfo(SourceNode* sourceNode)
 
         if (didUpdateSourcemap)
         {
-            writePathsToMap(rootSourceNode, rootSourceNode->className == "DataModel" ? "game" : "ProjectRoot");
-
             // Update the sourcemap file if needed
             auto config = workspaceFolder->client->getConfiguration(workspaceFolder->rootUri);
             if (config.sourcemap.autogenerate)
@@ -152,6 +150,7 @@ void RobloxPlatform::onStudioPluginFullChange(const json& dataModel)
     setPluginInfo(PluginNode::fromJson(dataModel, pluginNodeAllocator));
 
     hydrateSourcemapWithPluginInfo(rootSourceNode);
+    writePathsToMap(rootSourceNode, rootSourceNode->className == "DataModel" ? "game" : "ProjectRoot");
 }
 
 void RobloxPlatform::onStudioPluginClear()
@@ -161,6 +160,7 @@ void RobloxPlatform::onStudioPluginClear()
     // TODO: properly handle multi-workspace setup
     pluginNodeAllocator.clear();
     setPluginInfo(nullptr);
+
     clearPluginManagedNodesFromSourcemap(rootSourceNode);
     writePathsToMap(rootSourceNode, rootSourceNode->className == "DataModel" ? "game" : "ProjectRoot");
 }
