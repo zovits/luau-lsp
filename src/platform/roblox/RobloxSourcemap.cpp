@@ -489,7 +489,7 @@ void RobloxPlatform::updateSourceNodeMap(const std::string& sourceMapContents)
         rootSourceNode = SourceNode::fromJson(j, sourceNodeAllocator);
 
         // Mutate with plugin info
-        hydrateSourcemapWithPluginInfo(rootSourceNode);
+        hydrateSourcemapWithPluginInfo();
 
         // Write paths
         std::string base = rootSourceNode->className == "DataModel" ? "game" : "ProjectRoot";

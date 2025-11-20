@@ -99,12 +99,19 @@ void RobloxPlatform::clearPluginManagedNodesFromSourcemap(SourceNode* sourceNode
     }
 }
 
-bool RobloxPlatform::hydrateSourcemapWithPluginInfo(SourceNode* sourceNode)
+bool RobloxPlatform::hydrateSourcemapWithPluginInfo()
 {
-    if (!sourceNode || !pluginInfo)
+    if (!pluginInfo)
     {
         return false;
     }
+
+    // If we don't have a sourcemap yet, we create a DataModel root node
+    if (!rootSourceNode)
+    {
+        rootSourceNode = sourceNodeAllocator.allocate(SourceNode("game", "DataModel", {}, {}));
+    }
+
 
     if (rootSourceNode->className != "DataModel")
     {
@@ -149,7 +156,7 @@ void RobloxPlatform::onStudioPluginFullChange(const json& dataModel)
     pluginNodeAllocator.clear();
     setPluginInfo(PluginNode::fromJson(dataModel, pluginNodeAllocator));
 
-    hydrateSourcemapWithPluginInfo(rootSourceNode);
+    hydrateSourcemapWithPluginInfo();
     writePathsToMap(rootSourceNode, rootSourceNode->className == "DataModel" ? "game" : "ProjectRoot");
 }
 

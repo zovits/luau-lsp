@@ -143,7 +143,7 @@ public:
 
     void clearPluginManagedNodesFromSourcemap(SourceNode* sourceNode);
 
-    bool hydrateSourcemapWithPluginInfo(SourceNode* sourceNode);
+    bool hydrateSourcemapWithPluginInfo();
 
     void mutateRegisteredDefinitions(Luau::GlobalTypes& globals, std::optional<nlohmann::json> metadata) override;
 
